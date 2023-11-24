@@ -1,13 +1,13 @@
 import express from 'express';
+import { login, register } from '../controllers/authController.js';
 
 const router = express.Router();
-router.get('/', (req, res) => {
-   res.send('this is authentication endpoint');
-});
 
-//CREATE
+//register
+router.post('/register', register);
 
-//UPDATE
+//login
+router.post('/login', login);
 
 //DELETE
 
