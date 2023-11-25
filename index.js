@@ -6,6 +6,7 @@ import hotelRouter from './routes/hotelRouter.js';
 import roomRouter from './routes/roomRouter.js';
 import userRouter from './routes/userRouter.js';
 import transactionRouter from './routes/transactionRouter.js';
+import cookiesParser from 'cookie-parser';
 
 const app = express();
 dotenv.config();
@@ -32,6 +33,7 @@ mongoose.connection.on('connected', () => {
 });
 
 //middlewares
+app.use(cookiesParser())
 
 app.use(express.json());
 
