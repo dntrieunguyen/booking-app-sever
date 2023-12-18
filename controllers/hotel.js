@@ -1,9 +1,9 @@
-import HotelModel from '../model/HotelModel.js';
+import Hotel from '../model/Hotel.js';
 import { createError } from '../utils/error.js';
 
 //CREATE
 export const createHotel = async (req, res, next) => {
-   const newHotel = new HotelModel(req.body);
+   const newHotel = new Hotel(req.body);
    try {
       const savedHotel = await newHotel.save();
       res.status(200).json(savedHotel);
@@ -16,7 +16,7 @@ export const createHotel = async (req, res, next) => {
 
 export const updateHotel = async (req, res, next) => {
    try {
-      const updatedHotel = await HotelModel.findByIdAndUpdate(
+      const updatedHotel = await Hotel.findByIdAndUpdate(
          req.params.id,
          { $set: req.body },
          { new: true },
@@ -30,7 +30,7 @@ export const updateHotel = async (req, res, next) => {
 //DELETE
 export const deleteHotel = async (req, res, next) => {
    try {
-      const updatedHotel = await HotelModel.findByIdAndDelete(req.params.id);
+      const updatedHotel = await Hotel.findByIdAndDelete(req.params.id);
       res.status(200).json(`Hotel with id ${req.params.id} deleted`);
    } catch (err) {
       next(err);
@@ -40,7 +40,7 @@ export const deleteHotel = async (req, res, next) => {
 //GET
 export const getHotel = async (req, res, next) => {
    try {
-      const hotel = await HotelModel.findById(req.params.id);
+      const hotel = await Hotel.findById(req.params.id);
       res.status(200).json(hotel);
    } catch (err) {
       next(err);
@@ -50,7 +50,7 @@ export const getHotel = async (req, res, next) => {
 //GET ALL
 export const getAllHotel = async (req, res, next) => {
    try {
-      const allHotel = await HotelModel.find();
+      const allHotel = await Hotel.find();
       res.status(200).json(allHotel);
    } catch (err) {
       next(err);

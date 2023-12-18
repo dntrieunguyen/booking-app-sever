@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
-const TransactionModel = new mongoose.Schema({
+const TransactionSchema = new mongoose.Schema({
    user: {
       type: String, // Username của người đặt phòng
       require: true,
@@ -37,4 +37,4 @@ const TransactionModel = new mongoose.Schema({
    },
 });
 
-export default mongoose.model('Transaction', TransactionModel);
+export default mongoose.model('Transaction', TransactionSchema);

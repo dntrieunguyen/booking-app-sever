@@ -1,5 +1,5 @@
 import express from 'express';
-import TransactionModel from '../model/TransactionModel.js';
+import Transaction from '../model/Transaction.js';
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ const router = express.Router();
 
 //Create
 router.post('/', async (req, res) => {
-   const newTransaction = new TransactionModel(req.body);
+   const newTransaction = new Transaction(req.body);
    try {
       const savedTransaction = await newTransaction.save();
       res.status(200).json(savedTransaction);
@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
    try {
-      const updatedTransaction = await TransactionModel.findByIdAndUpdate(
+      const updatedTransaction = await Transaction.findByIdAndUpdate(
          req.params.id,
          { $set: req.body },
          { new: true },
@@ -36,7 +36,7 @@ router.put('/:id', async (req, res) => {
 //Delete
 router.delete('/:id', async (req, res) => {
    try {
-      const updatedTransaction = await TransactionModel.findByIdAndDelete(
+      const updatedTransaction = await Transaction.findByIdAndDelete(
          req.params.id,
       );
       res.status(200).json(`Transaction with id ${req.params.id} deleted`);
@@ -48,7 +48,7 @@ router.delete('/:id', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
    try {
-      const transaction = await TransactionModel.findById(req.params.id);
+      const transaction = await Transaction.findById(req.params.id);
       res.status(200).json(transaction);
    } catch (error) {
       res.status(500).json(error);
@@ -58,7 +58,7 @@ router.get('/:id', async (req, res) => {
 //Get all
 router.get('/', async (req, res) => {
    try {
-      const transactions = await TransactionModel.find();
+      const transactions = await Transaction.find();
       res.status(200).json(transactions);
    } catch (error) {
       res.status(500).json(error);

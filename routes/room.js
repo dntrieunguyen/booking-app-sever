@@ -1,5 +1,5 @@
 import express from 'express';
-import RoomModel from '../model/RoomModel.js';
+import Room from '../model/Room.js';
 
 const router = express.Router();
 // router.get('/', (req, res) => {
@@ -8,7 +8,7 @@ const router = express.Router();
 
 //CREATE
 router.post('/', async (req, res) => {
-   const newRoom = new RoomModel(req.body);
+   const newRoom = new Room(req.body);
 
    try {
       const savedRoom = await newRoom.save();
@@ -21,7 +21,7 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
    try {
-      const updatedRoom = await RoomModel.findByIdAndUpdate(
+      const updatedRoom = await Room.findByIdAndUpdate(
          req.params.id,
          { $set: req.body },
          { new: true },
@@ -37,7 +37,7 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
    try {
-      const updatedRoom = await RoomModel.findByIdAndDelete(req.params.id);
+      const updatedRoom = await Room.findByIdAndDelete(req.params.id);
       res.status(200).json(`room with id ${req.params.id} deleted`);
    } catch (error) {
       res.status(500).json(error);
@@ -48,7 +48,7 @@ router.delete('/:id', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
    try {
-      const room = await RoomModel.findById(req.params.id);
+      const room = await Room.findById(req.params.id);
       res.status(200).json(room);
    } catch (error) {
       res.status(500).json(error);
@@ -59,7 +59,7 @@ router.get('/:id', async (req, res) => {
 
 router.get('/', async (req, res) => {
    try {
-      const rooms = await RoomModel.find();
+      const rooms = await Room.find();
       res.status(200).json(rooms);
    } catch (error) {
       res.status(500).json(error);
