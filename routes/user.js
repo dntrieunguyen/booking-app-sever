@@ -1,18 +1,22 @@
 import express from 'express';
+import {
+   getAllUser,
+   getUserInfo,
+   newRefreshAccessToken,
+} from '../controllers/user.js';
+import { verifyAccessToken } from '../middlewares/verifyToken.js';
 
 const router = express.Router();
-router.get('/', (req, res) => {
-   res.send('this is user endpoint');
-});
-
-//CREATE
 
 //UPDATE
 
-//DELETE
-
 //GET
+router.get('/userinfo', verifyAccessToken, getUserInfo);
 
 //GET ALL
+router.get('/', verifyAccessToken, getAllUser);
+// Make new refresh Token
+
+router.post('/refreshToken', newRefreshAccessToken);
 
 export default router;

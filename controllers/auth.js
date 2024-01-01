@@ -1,64 +1,128 @@
 import User from '../model/User.js';
-import bcrypt from 'bcryptjs';
 import { createError } from '../utils/error.js';
-import jwt from 'jsonwebtoken';
+import {
+   generateAccessToken,
+   generateRefreshToken,
+} from '../middlewares/jwt.js';
+import { STATUS_CODE } from '../utils/STATUS_CODE.js';
+
 //Register
-export const register = async (req, res, next) => {
+const register = async (req, res, next) => {
    try {
-      // hashing password using bcrypt
-      const salt = bcrypt.genSaltSync(10);
-      const hash = bcrypt.hashSync(req.body.password, salt);
+      const { userName, password, email, phoneNumber } = req.body;
 
-      //Tạo new user
-      const newUser = new User({
-         username: req.body.username,
-         email: req.body.email,
-         password: hash,
-      });
+      //Check blank fields
+      if (!userName || !password || !email || !phoneNumber) {
+         return next(
+            createError(STATUS_CODE.BAD_REQUEST, 'Missing required fields!'),
+         );
+      }
+      //Check existance account
+      const existingUser = await User.findOne().or([
+         { email },
+         { phoneNumber },
+         { userName },
+      ]);
 
-      // Lưu user
-      await newUser.save();
-      res.status(201).send('User has been created');
+      // Nếu user đã tồn tại ==>  thông báo lỗi
+      if (existingUser) {
+         const conflictField =
+            existingUser.email === email
+               ? 'Email'
+               : existingUser.phoneNumber === phoneNumber
+               ? 'Phone number'
+               : 'Username';
+
+         return next(
+            createError(
+               STATUS_CODE.CONFLICT,
+               `${conflictField} has already been taken!`,
+            ),
+         );
+      }
+      // Thông tin user đăng ký hợp lệ ==> tạo user mới
+      else {
+         const newUser = await User.create(req.body);
+         return res.status(STATUS_CODE.CREATED).json({
+            success: newUser ? true : false,
+            msg: newUser
+               ? 'Register successfully, please login'
+               : 'Something went wrong !!!',
+         });
+      }
    } catch (err) {
       next(err);
    }
 };
+
 //Login
-export const login = async (req, res, next) => {
+const login = async (req, res, next) => {
    try {
       // Check user
       const user = await User.findOne({
-         username: req.body.username,
+         userName: req.body.userName,
       });
+
       if (!user) {
-         return next(createError(404, 'user not found'));
+         return next(createError(STATUS_CODE.NOT_FOUND, 'user not found'));
       }
 
       // check password
-      const isPassword = await bcrypt.compare(req.body.password, user.password);
+      const isPassword = await user.isCorrectPassword(req.body.password); // True/false
 
+      // Đăng nhập thất bại
       if (!isPassword) {
-         return next(createError(400, 'Password not correct'));
+         return next(
+            createError(STATUS_CODE.UNAUTHORIZED, 'Password is not correct'),
+         );
       }
 
       // Đăng nhập thành công => Lấy password và isAdmin của user
-      const { password, isAdmin, ...others } = user._doc;
+      const { password, isAdmin, phoneNumber, ...others } = user._doc;
 
-      //Tạo token
-      const token = jwt.sign(
-         {
-            id: user._id,
-            isAdmin: user.isAdmin,
-         },
-         process.env.JWT,
-      );
+      //Tạo Access token
+      const accessToken = generateAccessToken(user._id, user.isAdmin);
+
+      //Tạo refresh Token
+      const refreshToken = generateRefreshToken(user._id);
+      await User.findByIdAndUpdate(user._id, { refreshToken }, { new: true });
       //Tạo cookies
-      res.cookie('access-token', token, {
+      res.cookie('refresh_token', refreshToken, {
          httpOnly: true,
-      })
-         .status(200)
-         .json({ ...others });
+         maxAge: 7 * 24 * 60 * 60 * 1000, // Lưu refresh Token trong 7 ngày
+      });
+      return res.status(STATUS_CODE.CREATED).json({
+         success: true,
+         accessToken,
+         userData: others,
+      });
    } catch (err) {
       next(err);
    }
 };
+
+// Logout
+const logout = async (req, res, next) => {
+   try {
+      const cookie = req.cookies;
+      if (!cookie && !cookie.refresh_token) throw new Error('invalid token');
+      const response = await User.findOneAndUpdate(
+         { refreshToken: cookie.refresh_token },
+         { $set: { refreshToken: null } },
+         { new: true },
+      );
+
+      res.clearCookie('refresh_token', {
+         httpOnly: true,
+         secure: true,
+      });
+      return res.status(STATUS_CODE.OK).json({
+         success: true,
+         msg: 'log out successfully',
+      });
+   } catch (error) {
+      next(error);
+   }
+};
+
+export { register, login, logout };
